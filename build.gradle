@@ -1,0 +1,117 @@
+buildscript {
+    repositories {
+        jcenter()
+        maven { url = "https://files.minecraftforge.net/maven" }
+    }
+    dependencies {
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
+    }
+}
+
+apply plugin: 'net.minecraftforge.gradle.forge'
+apply plugin: 'maven-publish'
+apply plugin: 'signing'
+
+group = 'com.arctyll'
+version = '1.0'
+archivesBaseName = 'NotificationsAPI'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+minecraft {
+    version = "1.8.9-11.15.1.2318-1.8.9"
+    runDir = "run"
+    mappings = "stable_22"
+    coreMod = "com.arctyll.notificationsapi.core.NotificationsCoremod"
+}
+
+jar {
+    manifest {
+        attributes(
+            "FMLCorePlugin": "com.arctyll.notificationsapi.core.NotificationsCoremod",
+            "FMLCorePluginContainsMod": "true",
+            "Implementation-Title": "NotificationsAPI",
+            "Implementation-Version": version,
+            "ForceLoadAsMod": "true"
+        )
+    }
+}
+
+task sourceJar(type: Jar) {
+    from sourceSets.main.allSource
+    classifier = 'sources'
+}
+
+task javadocJar(type: Jar) {
+    from javadoc
+    classifier = 'javadoc'
+}
+
+artifacts {
+    archives sourceJar
+    archives javadocJar
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifact jar
+            artifact sourceJar
+            artifact javadocJar
+
+            groupId = 'com.arctyll'
+            artifactId = 'notificationsapi'
+            version = project.version
+
+            pom {
+                name = 'NotificationsAPI'
+                description = 'A Minecraft Forge 1.8.9 coremod API for displaying rich notifications.'
+                url = 'https://github.com/arctyll/notificationsapi'
+
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url = 'https://opensource.org/licenses/MIT'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id = 'arctyll'
+                        name = 'Arctyll'
+                        email = 'team@arctyll.com'
+                    }
+                }
+
+                scm {
+                    connection = 'scm:git:git://github.com/arctyll/notificationsapi.git'
+                    developerConnection = 'scm:git:ssh://github.com/arctyll/notificationsapi.git'
+                    url = 'https://github.com/arctyll/notificationsapi'
+                }
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            name = 'ossrh'
+            url = version.endsWith("SNAPSHOT") ?
+                    uri("https://s01.oss.sonatype.org/content/repositories/snapshots/") :
+                    uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
+            credentials {
+                username = System.getenv("OSSRH_USERNAME")
+                password = System.getenv("OSSRH_PASSWORD")
+            }
+        }
+    }
+}
+
+signing {
+    useInMemoryPgpKeys(
+        System.getenv("SIGNING_KEY_ID"),
+        System.getenv("SIGNING_KEY"),
+        System.getenv("SIGNING_PASSWORD") ?: ""
+    )
+    sign publishing.publications.mavenJava
+}
