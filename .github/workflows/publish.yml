@@ -15,7 +15,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
-          java-version: 8
+          java-version: '8'
 
       - name: Set up Gradle
         uses: gradle/gradle-build-action@v2
@@ -25,17 +25,11 @@ jobs:
           mkdir -p $HOME/.gnupg
           chmod 700 $HOME/.gnupg
 
-          cat > private.key <<EOF
-${SIGNING_KEY}
-EOF
-
-          gpg --batch --yes --import private.key
+          echo "${SIGNING_KEY}" | gpg --batch --yes --import
 
           gpg --batch --yes --armor --pinentry-mode loopback \
-              --passphrase "$SIGNING_PASSWORD" \
-              --export-secret-keys "$SIGNING_KEY_ID" > secring.gpg
-
-          rm private.key
+              --passphrase "${SIGNING_PASSWORD}" \
+              --export-secret-keys "${SIGNING_KEY_ID}" > secring.gpg
         env:
           SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
           SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
@@ -47,6 +41,8 @@ EOF
             -Psigning.keyId=${SIGNING_KEY_ID} \
             -Psigning.password=${SIGNING_PASSWORD} \
             -Psigning.secretKeyRingFile=secring.gpg \
+            -PossrhUsername=${OSSRH_USERNAME} \
+            -PossrhPassword=${OSSRH_PASSWORD} \
             --no-daemon
         env:
           OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
