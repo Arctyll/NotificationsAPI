@@ -1,0 +1,18 @@
+[
+  {
+    "modid": "${modid}",
+    "name": "NotificationsAPI",
+    "description": "A stand-alone API for sending notifications in Minecraft 1.8.9.",
+    "version": "${version}",
+    "mcversion": "${mcversion}",
+    "url": "https://github.com/Arctyll/NotificationsAPI",
+    "updateUrl": "",
+    "authorList": [
+      "Arctyll"
+    ],
+    "credits": "",
+    "logoFile": "",
+    "screenshots": [],
+    "dependencies": []
+  }
+]
