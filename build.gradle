@@ -38,27 +38,31 @@ jar {
     }
 }
 
-tasks.named('sourceJar') {
-    from sourceSets.main.allSource
-    archiveClassifier.set('sources')
+if (!project.tasks.findByName("sourceJar")) {
+    task sourceJar(type: Jar) {
+        from sourceSets.main.allSource
+        classifier = 'sources'
+    }
 }
 
-tasks.register('javadocJar', Jar) {
-    from tasks.javadoc
-    archiveClassifier.set('javadoc')
+if (!project.tasks.findByName("javadocJar")) {
+    task javadocJar(type: Jar, dependsOn: javadoc) {
+        from javadoc.destinationDir
+        classifier = 'javadoc'
+    }
 }
 
 artifacts {
-    archives tasks.named('sourceJar')
-    archives tasks.named('javadocJar')
+    archives sourceJar
+    archives javadocJar
 }
 
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            artifact tasks.named('jar').get()
-            artifact tasks.named('sourceJar').get()
-            artifact tasks.named('javadocJar').get()
+            artifact jar
+            artifact sourceJar
+            artifact javadocJar
 
             groupId = 'com.arctyll'
             artifactId = 'notificationsapi'
