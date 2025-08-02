@@ -1,34 +1,34 @@
-buildscript {
-    repositories {
-        jcenter()
-		mavenCentral()
-        maven { url = "https://files.minecraftforge.net/maven" }
-    }
-    dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:2.1-SNAPSHOT'
-        classpath 'com.github.jengelman.gradle.plugins:shadow:7.1.2'
-    }
+plugins {
+    id 'java'
+    id 'maven-publish'
+    id 'signing'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
+    id 'net.minecraftforge.gradle' version '3.0.200'
 }
-
-apply plugin: 'net.minecraftforge.gradle.forge'
-apply plugin: 'maven-publish'
-apply plugin: 'signing'
-apply plugin: 'com.github.johnrengelman.shadow'
 
 group = 'com.arctyll'
 version = '1.0'
-archivesBaseName = 'NotificationsAPI'
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+base {
+    archivesName.set('NotificationsAPI')
+}
+
+java {
+    toolchain.languageVersion.set(JavaLanguageVersion.of(8))
+    withJavadocJar()
+    withSourcesJar()
+}
 
 def lwjglVersion = "3.3.3"
 
 minecraft {
-    version = "1.8.9-11.15.1.2318-1.8.9"
-    runDir = "run"
-    mappings = "stable_22"
-    coreMod = "com.arctyll.notificationsapi.Coremod"
+    mappings channel: 'stable', version: '22'
+    
+    runs {
+        client {
+            workingDirectory = file('run')
+        }
+    }
 }
 
 jar {
@@ -45,14 +45,17 @@ jar {
 
 repositories {
     mavenCentral()
+    maven { url = "https://files.minecraftforge.net/maven" }
 }
 
 configurations {
     shade
-    implementation.extendsFrom shade
+    implementation.extendsFrom(shade)
 }
 
 dependencies {
+    minecraft "net.minecraftforge:forge:1.8.9-11.15.1.2318-1.8.9"
+
     implementation platform("org.lwjgl:lwjgl-bom:$lwjglVersion")
 
     shade "org.lwjgl:lwjgl"
@@ -69,73 +72,62 @@ dependencies {
     }
 }
 
-shadowJar {
+tasks.shadowJar {
     archiveClassifier.set('')
     configurations = [project.configurations.shade]
 }
 
-jar.finalizedBy(shadowJar)
-
-if (!project.tasks.findByName("sourceJar")) {
-    task sourceJar(type: Jar) {
-        from sourceSets.main.allSource
-        classifier = 'sources'
-    }
-}
-
-if (!project.tasks.findByName("javadocJar")) {
-    task javadocJar(type: Jar, dependsOn: javadoc) {
-        from javadoc.destinationDir
-        classifier = 'javadoc'
-    }
-}
-
-artifacts {
-    archives sourceJar
-    archives javadocJar
+tasks.jar {
+    finalizedBy tasks.shadowJar
+    enabled = false
 }
 
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            artifact shadowJar
-            artifact sourceJar
-            artifact javadocJar
+            artifact(tasks.shadowJar)
+            artifact(tasks.sourcesJar)
+            artifact(tasks.javadocJar)
 
             groupId = 'com.arctyll'
             artifactId = 'notificationsapi'
             version = project.version
 
-            pom.withXml {
-                asNode().appendNode('name', 'NotificationsAPI')
-                asNode().appendNode('description', 'A Minecraft Forge 1.8.9 coremod API for displaying rich notifications.')
-                asNode().appendNode('url', 'https://github.com/arctyll/notificationsapi')
+            pom {
+                name.set('NotificationsAPI')
+                description.set('A Minecraft Forge 1.8.9 coremod API for displaying rich notifications.')
+                url.set('https://github.com/arctyll/notificationsapi')
 
-                def licensesNode = asNode().appendNode('licenses')
-                def licenseNode = licensesNode.appendNode('license')
-                licenseNode.appendNode('name', 'MIT License')
-                licenseNode.appendNode('url', 'https://opensource.org/licenses/MIT')
+                licenses {
+                    license {
+                        name.set('MIT License')
+                        url.set('https://opensource.org/licenses/MIT')
+                    }
+                }
 
-                def developersNode = asNode().appendNode('developers')
-                def devNode = developersNode.appendNode('developer')
-                devNode.appendNode('id', 'arctyll')
-                devNode.appendNode('name', 'Arctyll')
-                devNode.appendNode('email', 'team@arctyll.com')
+                developers {
+                    developer {
+                        id.set('arctyll')
+                        name.set('Arctyll')
+                        email.set('team@arctyll.com')
+                    }
+                }
 
-                def scmNode = asNode().appendNode('scm')
-                scmNode.appendNode('connection', 'scm:git:git://github.com/arctyll/notificationsapi.git')
-                scmNode.appendNode('developerConnection', 'scm:git:ssh://github.com/arctyll/notificationsapi.git')
-                scmNode.appendNode('url', 'https://github.com/arctyll/notificationsapi')
+                scm {
+                    connection.set('scm:git:git://github.com/arctyll/notificationsapi.git')
+                    developerConnection.set('scm:git:ssh://github.com/arctyll/notificationsapi.git')
+                    url.set('https://github.com/arctyll/notificationsapi')
+                }
             }
         }
     }
 
     repositories {
         maven {
-            name = 'ossrh'
+            name = "ossrh"
             url = version.endsWith("SNAPSHOT") ?
-                    uri("https://s01.oss.sonatype.org/content/repositories/snapshots/") :
-                    uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
+                uri("https://s01.oss.sonatype.org/content/repositories/snapshots/") :
+                uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
             credentials {
                 username = System.getenv("OSSRH_USERNAME")
                 password = System.getenv("OSSRH_PASSWORD")
@@ -145,5 +137,5 @@ publishing {
 }
 
 signing {
-    sign configurations.archives
+    sign publishing.publications.mavenJava
 }
