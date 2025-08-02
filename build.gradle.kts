@@ -10,11 +10,17 @@ version = "1.0"
 
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(8))
+    withSourcesJar()
+    withJavadocJar()
 }
 
 repositories {
     mavenCentral()
-    maven { url = uri("https://files.minecraftforge.net/maven") }
+    maven {
+        name = "Forge"
+        url = uri("https://maven.minecraftforge.net/")
+    }
+    mavenLocal() // in case you install Forge locally via MDK
 }
 
 dependencies {
@@ -22,6 +28,7 @@ dependencies {
 }
 
 tasks.withType<Jar> {
+    archiveBaseName.set("NotificationsAPI")
     manifest {
         attributes(
             "FMLCorePlugin" to "com.arctyll.notificationsapi.core.NotificationsCoremod",
@@ -32,8 +39,6 @@ tasks.withType<Jar> {
             "Implementation-Version" to version
         )
     }
-
-    archiveBaseName.set("NotificationsAPI")
 }
 
 tasks.register<Jar>("coremodJar") {
@@ -49,7 +54,10 @@ tasks.register<Jar>("coremodJar") {
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
-            artifact(tasks["coremodJar"])
+            artifact(tasks.named("coremodJar"))
+            artifact(tasks.named("sourcesJar"))
+            artifact(tasks.named("javadocJar"))
+
             groupId = "com.arctyll"
             artifactId = "notificationsapi"
             version = project.version.toString()
