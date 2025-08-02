@@ -19,7 +19,7 @@ public class NotificationsAPI {
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
         RenderUtils.initNanoVG();
-        loadFontFromAssets("assets/notificationsapi/font/Outfit.ttf");
+        loadFontFromAssets("assets/notificationsapi/fonts/Outfit.ttf");
     }
 
     @Mod.EventHandler
