@@ -38,27 +38,27 @@ jar {
     }
 }
 
-task sourceJar(type: Jar) {
+tasks.named('sourceJar') {
     from sourceSets.main.allSource
-    classifier = 'sources'
+    archiveClassifier.set('sources')
 }
 
-task javadocJar(type: Jar) {
-    from javadoc
-    classifier = 'javadoc'
+tasks.register('javadocJar', Jar) {
+    from tasks.javadoc
+    archiveClassifier.set('javadoc')
 }
 
 artifacts {
-    archives sourceJar
-    archives javadocJar
+    archives tasks.named('sourceJar')
+    archives tasks.named('javadocJar')
 }
 
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            artifact jar
-            artifact sourceJar
-            artifact javadocJar
+            artifact tasks.named('jar').get()
+            artifact tasks.named('sourceJar').get()
+            artifact tasks.named('javadocJar').get()
 
             groupId = 'com.arctyll'
             artifactId = 'notificationsapi'
