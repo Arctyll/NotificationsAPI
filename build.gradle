@@ -23,13 +23,13 @@ minecraft {
     version = "1.8.9-11.15.1.2318-1.8.9"
     runDir = "run"
     mappings = "stable_22"
-    coreMod = "com.arctyll.notificationsapi.core.NotificationsCoremod"
+    coreMod = "com.arctyll.notificationsapi.Coremod"
 }
 
 jar {
     manifest {
         attributes(
-            "FMLCorePlugin": "com.arctyll.notificationsapi.core.NotificationsCoremod",
+            "FMLCorePlugin": "com.arctyll.notificationsapi.Coremod",
             "FMLCorePluginContainsMod": "true",
             "Implementation-Title": "NotificationsAPI",
             "Implementation-Version": version,
