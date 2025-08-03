@@ -1,8 +1,6 @@
 import org.apache.commons.lang3.SystemUtils
-import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
-import org.gradle.jvm.tasks.Jar as JvmJar
-import org.gradle.kotlin.dsl.*
+import org.gradle.jvm.toolchain.JavaLanguageVersion
 import net.fabricmc.loom.task.RemapJarTask
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.gradle.api.publish.maven.MavenPublication
@@ -14,7 +12,7 @@ plugins {
     id("dev.architectury.architectury-pack200") version "0.1.3"
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("maven-publish")
-    id("org.jreleaser") version "1.19.0"
+    id("org.jreleaser") version "1.9.0"
 }
 
 val baseGroup: String by project
@@ -43,20 +41,16 @@ loom {
                 vmArgs.remove("-XstartOnFirstThread")
             }
         }
-        remove("server")
+        runConfigs.remove("server")
     }
     forge {
         pack200Provider.set(dev.architectury.pack200.java.Pack200Adapter())
         if (transformerFile.exists()) {
             println("Installing access transformer")
-            accessTransformer.set(transformerFile)
+            accessTransformer = transformerFile
         }
     }
 }
-
-sourceSets["main"].output.setResourcesDir(
-    sourceSets["main"].java.outputDir
-)
 
 repositories {
     mavenCentral()
@@ -141,7 +135,7 @@ publishing {
             from(components["java"])
             pom {
                 name.set("NotificationsAPI")
-                description.set("A Minecraft modding API for rendering in-game notifications with auto-sizing, text wrapping, and NanoVG.")
+                description.set("Notifications API")
                 url.set("https://github.com/Arctyll/NotificationsAPI")
                 inceptionYear.set("2025")
                 licenses {
@@ -159,31 +153,29 @@ publishing {
                 scm {
                     connection.set("scm:git:https://github.com/Arctyll/NotificationsAPI.git")
                     developerConnection.set("scm:git:ssh://github.com/Arctyll/NotificationsAPI.git")
-                    url.set("http://github.com/Arctyll/NotificationsAPI")
+                    url.set("https://github.com/Arctyll/NotificationsAPI")
                 }
             }
         }
     }
     repositories {
         maven {
-            url = layout.buildDirectory.dir("staging-deploy")
+            url = uri(layout.buildDirectory.dir("staging-deploy"))
         }
     }
 }
 
 jreleaser {
     signing {
-        active.set(org.jreleaser.model.SigningMode.ALWAYS.name)
+        active.set("ALWAYS")
         armored.set(true)
     }
     deploy {
         maven {
             mavenCentral {
-                sonatype {
-                    active.set("ALWAYS")
-                    url.set("https://central.sonatype.com/api/v1/publisher")
-                    stagingRepository.set("build/staging-deploy")
-                }
+                active.set("ALWAYS")
+                url.set("https://central.sonatype.com/api/v1/publisher")
+                stagingRepository.set("build/staging-deploy")
             }
         }
     }
