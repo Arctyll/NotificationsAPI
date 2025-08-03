@@ -8,7 +8,7 @@ plugins {
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("maven-publish")
     id("signing")
-    id("io.codearte.nexus-staging") version "0.30.0"
+    id("io.github.gradle-nexus.publish-plugin") version "1.3.0"
 }
 
 val baseGroup: String by project
@@ -81,15 +81,13 @@ tasks.withType(JavaCompile::class) {
     options.encoding = "UTF-8"
 }
 
-tasks.withType(org.gradle.jvm.tasks.Jar::class) {
+tasks.withType<Jar> {
     archiveBaseName.set(modid)
-    manifest.attributes.run {
-        this["FMLCorePluginContainsFMLMod"] = "true"
-        this["ForceLoadAsMod"] = "true"
-        if (transformerFile.exists()) {
-            this["FMLAT"] = "${modid}_at.cfg"
-        }
-    }
+    manifest.attributes(
+        "FMLCorePluginContainsFMLMod" to "true",
+        "ForceLoadAsMod" to "true",
+        "FMLAT" to if (transformerFile.exists()) "${modid}_at.cfg" else ""
+    )
 }
 
 tasks.processResources {
@@ -98,7 +96,7 @@ tasks.processResources {
     inputs.property("modid", modid)
     inputs.property("basePackage", baseGroup)
 
-    filesMatching(listOf("mcmod.info")) {
+    filesMatching("mcmod.info") {
         expand(inputs.properties)
     }
 
@@ -184,9 +182,12 @@ signing {
     sign(publishing.publications["mavenJava"])
 }
 
-nexusStaging {
-    packageGroup = baseGroup
-    stagingProfileId = System.getenv("OSSRH_STAGING_PROFILE_ID") ?: ""
-    username = System.getenv("OSSRH_USERNAME")
-    password = System.getenv("OSSRH_PASSWORD")
+nexusPublishing {
+    packageGroup.set(baseGroup)
+    repositories {
+        sonatype {
+            username.set(System.getenv("OSSRH_USERNAME"))
+            password.set(System.getenv("OSSRH_PASSWORD"))
+        }
+    }
 }
