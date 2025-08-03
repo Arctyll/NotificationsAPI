@@ -77,7 +77,7 @@ dependencies {
     }
 }
 
-tasks.withType(JavaCompile::class) {
+tasks.withType<JavaCompile> {
     options.encoding = "UTF-8"
 }
 
@@ -153,22 +153,6 @@ publishing {
                     connection.set("scm:git:git://github.com/Arctyll/NotificationsAPI.git")
                     developerConnection.set("scm:git:ssh://git@github.com/Arctyll/NotificationsAPI.git")
                 }
-            }
-        }
-    }
-
-    repositories {
-        maven {
-            name = "Sonatype"
-            url = uri(
-                if (version.endsWith("SNAPSHOT"))
-                    "https://s01.oss.sonatype.org/content/repositories/snapshots/"
-                else
-                    "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
-            )
-            credentials {
-                username = System.getenv("OSSRH_USERNAME") ?: ""
-                password = System.getenv("OSSRH_PASSWORD") ?: ""
             }
         }
     }
