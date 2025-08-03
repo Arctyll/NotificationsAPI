@@ -1,4 +1,11 @@
 import org.apache.commons.lang3.SystemUtils
+import org.gradle.api.tasks.bundling.Jar
+import org.gradle.api.tasks.compile.JavaCompile
+import org.gradle.jvm.tasks.Jar as JvmJar
+import org.gradle.kotlin.dsl.*
+import net.fabricmc.loom.task.RemapJarTask
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.gradle.api.publish.maven.MavenPublication
 
 plugins {
     idea
@@ -7,7 +14,7 @@ plugins {
     id("dev.architectury.architectury-pack200") version "0.1.3"
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("maven-publish")
-    id("signing")
+    id("org.jreleaser") version "1.19.0"
 }
 
 val baseGroup: String by project
@@ -19,35 +26,37 @@ val lwjglVersion = "3.3.1"
 
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(8))
+    withJavadocJar()
+    withSourcesJar()
 }
 
 loom {
     log4jConfigs.from(file("log4j2.xml"))
     launchConfigs {
-        "client" {
+        create("client") {
             arg("--tweakClass", "net.minecraftforge.fml.common.launcher.FMLTweaker")
         }
     }
     runConfigs {
-        "client" {
+        named("client") {
             if (SystemUtils.IS_OS_MAC_OSX) {
                 vmArgs.remove("-XstartOnFirstThread")
             }
         }
-        remove(getByName("server"))
+        remove("server")
     }
     forge {
         pack200Provider.set(dev.architectury.pack200.java.Pack200Adapter())
         if (transformerFile.exists()) {
             println("Installing access transformer")
-            accessTransformer(transformerFile)
+            accessTransformer.set(transformerFile)
         }
     }
 }
 
-sourceSets.main {
-    output.setResourcesDir(sourceSets.main.flatMap { it.java.classesDirectory })
-}
+sourceSets["main"].output.setResourcesDir(
+    sourceSets["main"].java.outputDir
+)
 
 repositories {
     mavenCentral()
@@ -56,14 +65,14 @@ repositories {
     maven("https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1")
 }
 
-val shadowImpl: Configuration by configurations.creating {
-    configurations.implementation.get().extendsFrom(this)
+val shadowImpl by configurations.creating {
+    extendsFrom(configurations.implementation.get())
 }
 
 dependencies {
-    minecraft("com.mojang:minecraft:1.8.9")
-    mappings("de.oceanlabs.mcp:mcp_stable:22-1.8.9")
-    forge("net.minecraftforge:forge:1.8.9-11.15.1.2318-1.8.9")
+    "minecraft"("com.mojang:minecraft:1.8.9")
+    "mappings"("de.oceanlabs.mcp:mcp_stable:22-1.8.9")
+    "forge"("net.minecraftforge:forge:1.8.9-11.15.1.2318-1.8.9")
 
     shadowImpl("org.lwjgl:lwjgl:$lwjglVersion")
     shadowImpl("org.lwjgl:lwjgl-opengl:$lwjglVersion")
@@ -76,11 +85,11 @@ dependencies {
     }
 }
 
-tasks.withType<JavaCompile> {
+tasks.withType<JavaCompile>().configureEach {
     options.encoding = "UTF-8"
 }
 
-tasks.withType<Jar> {
+tasks.withType<Jar>().configureEach {
     archiveBaseName.set(modid)
     manifest.attributes(
         "FMLCorePluginContainsFMLMod" to "true",
@@ -90,77 +99,92 @@ tasks.withType<Jar> {
 }
 
 tasks.processResources {
-    inputs.property("version", project.version)
-    inputs.property("mcversion", mcVersion)
-    inputs.property("modid", modid)
-    inputs.property("basePackage", baseGroup)
-
+    inputs.properties(mapOf(
+        "version" to project.version,
+        "mcversion" to mcVersion,
+        "modid" to modid,
+        "basePackage" to baseGroup
+    ))
     filesMatching("mcmod.info") {
         expand(inputs.properties)
     }
-
     rename("accesstransformer.cfg", "META-INF/${modid}_at.cfg")
 }
 
-val remapJar by tasks.named<net.fabricmc.loom.task.RemapJarTask>("remapJar") {
+val remapJar by tasks.named<RemapJarTask>("remapJar") {
     archiveClassifier.set("")
-    from(tasks.shadowJar)
-    input.set(tasks.shadowJar.get().archiveFile)
+    from(tasks.named<ShadowJar>("shadowJar"))
+    input.set(tasks.named<ShadowJar>("shadowJar").flatMap { it.archiveFile })
 }
 
-tasks.jar {
+tasks.named<Jar>("jar") {
     archiveClassifier.set("without-deps")
     destinationDirectory.set(layout.buildDirectory.dir("intermediates"))
 }
 
-tasks.shadowJar {
-    destinationDirectory.set(layout.buildDirectory.dir("intermediates"))
+tasks.named<ShadowJar>("shadowJar") {
     archiveClassifier.set("non-obfuscated-with-deps")
+    destinationDirectory.set(layout.buildDirectory.dir("intermediates"))
     configurations = listOf(shadowImpl)
 }
 
-tasks.assemble.get().dependsOn(tasks.remapJar)
+tasks.assemble {
+    dependsOn(remapJar)
+}
 
 publishing {
     publications {
-        create<MavenPublication>("mavenJava") {
+        create<MavenPublication>("maven") {
             groupId = baseGroup
-            artifactId = modid
-            version = version
-
+            artifactId = "notificationsapi"
+            version = project.version.toString()
             from(components["java"])
-
             pom {
-                name.set("Notifications API")
-                description.set("A Minecraft modding API for rendering in-game notifications with auto-sizing, text wrapping, and NanoVG.")
+                name.set("NotificationsAPI")
+                description.set("Notifications API")
                 url.set("https://github.com/Arctyll/NotificationsAPI")
+                inceptionYear.set("2025")
                 licenses {
                     license {
-                        name.set("MIT License")
-                        url.set("https://opensource.org/licenses/MIT")
+                        name.set("MIT")
+                        url.set("https://opensource.org/license/mit")
                     }
                 }
                 developers {
                     developer {
-                        id.set("arctyll")
-                        name.set("Arctyll")
-                        email.set("team@arctyll.com")
+                        id.set("aalmiray")
+                        name.set("Andres Almiray")
                     }
                 }
                 scm {
-                    url.set("https://github.com/Arctyll/NotificationsAPI")
-                    connection.set("scm:git:git://github.com/Arctyll/NotificationsAPI.git")
-                    developerConnection.set("scm:git:ssh://git@github.com/Arctyll/NotificationsAPI.git")
+                    connection.set("scm:git:https://github.com/Arctyll/NotificationsAPI.git")
+                    developerConnection.set("scm:git:ssh://github.com/Arctyll/NotificationsAPI.git")
+                    url.set("http://github.com/Arctyll/NotificationsAPI")
                 }
             }
         }
     }
+    repositories {
+        maven {
+            url = layout.buildDirectory.dir("staging-deploy")
+        }
+    }
 }
 
-signing {
-    useInMemoryPgpKeys(
-        System.getenv("SIGNING_KEY"),
-        System.getenv("SIGNING_PASSWORD") ?: ""
-    )
-    sign(publishing.publications["mavenJava"])
+jreleaser {
+    signing {
+        active.set(org.jreleaser.model.SigningMode.ALWAYS.name)
+        armored.set(true)
+    }
+    deploy {
+        maven {
+            mavenCentral {
+                sonatype {
+                    active.set("ALWAYS")
+                    url.set("https://central.sonatype.com/api/v1/publisher")
+                    stagingRepository.set("build/staging-deploy")
+                }
+            }
+        }
+    }
 }
