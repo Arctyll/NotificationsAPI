@@ -15,6 +15,7 @@ val mcVersion: String by project
 val version: String by project
 val modid: String by project
 val transformerFile = file("src/main/resources/accesstransformer.cfg")
+val lwjglVersion = "3.3.1"
 
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(8))
@@ -63,6 +64,16 @@ dependencies {
     minecraft("com.mojang:minecraft:1.8.9")
     mappings("de.oceanlabs.mcp:mcp_stable:22-1.8.9")
     forge("net.minecraftforge:forge:1.8.9-11.15.1.2318-1.8.9")
+
+    shadowImpl("org.lwjgl:lwjgl:$lwjglVersion")
+    shadowImpl("org.lwjgl:lwjgl-opengl:$lwjglVersion")
+    shadowImpl("org.lwjgl:lwjgl-nanovg:$lwjglVersion")
+
+    listOf("natives-windows", "natives-linux", "natives-macos").forEach { classifier ->
+        runtimeOnly("org.lwjgl:lwjgl:$lwjglVersion:$classifier")
+        runtimeOnly("org.lwjgl:lwjgl-opengl:$lwjglVersion:$classifier")
+        runtimeOnly("org.lwjgl:lwjgl-nanovg:$lwjglVersion:$classifier")
+    }
 }
 
 tasks.withType(JavaCompile::class) {
