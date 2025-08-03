@@ -8,6 +8,7 @@ plugins {
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("maven-publish")
     id("signing")
+    id("io.codearte.nexus-staging") version "0.30.0"
 }
 
 val baseGroup: String by project
@@ -85,8 +86,9 @@ tasks.withType(org.gradle.jvm.tasks.Jar::class) {
     manifest.attributes.run {
         this["FMLCorePluginContainsFMLMod"] = "true"
         this["ForceLoadAsMod"] = "true"
-        if (transformerFile.exists())
+        if (transformerFile.exists()) {
             this["FMLAT"] = "${modid}_at.cfg"
+        }
     }
 }
 
@@ -118,12 +120,6 @@ tasks.shadowJar {
     destinationDirectory.set(layout.buildDirectory.dir("intermediates"))
     archiveClassifier.set("non-obfuscated-with-deps")
     configurations = listOf(shadowImpl)
-
-    doLast {
-        configurations.forEach {
-            println("Shaded dependencies: ${it.files}")
-        }
-    }
 }
 
 tasks.assemble.get().dependsOn(tasks.remapJar)
@@ -186,4 +182,11 @@ signing {
         System.getenv("SIGNING_PASSWORD") ?: ""
     )
     sign(publishing.publications["mavenJava"])
+}
+
+nexusStaging {
+    packageGroup = baseGroup
+    stagingProfileId = System.getenv("OSSRH_STAGING_PROFILE_ID") ?: ""
+    username = System.getenv("OSSRH_USERNAME")
+    password = System.getenv("OSSRH_PASSWORD")
 }
