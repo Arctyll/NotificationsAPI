@@ -1,0 +1,37 @@
+project:
+  name: notificationsapi
+  version: '${projectVersion}'
+  description: A Minecraft modding API for rendering in-game notifications with auto-sizing, text wrapping, and NanoVG.
+  authors:
+    - Arctyll
+  license: MIT
+  links:
+    homepage: https://github.com/Arctyll/NotificationsAPI
+    repository: https://github.com/Arctyll/NotificationsAPI
+
+signing:
+  active: ALWAYS
+  armored: true
+  publicKey: '${env.SIGNING_KEY_ID}'
+  secretKey: '${env.SIGNING_KEY}'
+  passphrase: '${env.SIGNING_PASSWORD}'
+
+release:
+  github:
+    owner: Arctyll
+    name: NotificationsAPI
+    tagName: '${projectVersion}'
+    releaseName: '${projectVersion}'
+    changelog:
+      enabled: false
+    sign: false
+    overwrite: true
+    draft: false
+
+deploy:
+  maven:
+    central:
+      active: ALWAYS
+      username: '${env.OSSRH_USERNAME}'
+      password: '${env.OSSRH_PASSWORD}'
+      url: https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/

@@ -8,7 +8,6 @@ plugins {
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("maven-publish")
     id("signing")
-    id("io.github.gradle-nexus.publish-plugin") version "1.3.0"
 }
 
 val baseGroup: String by project
@@ -164,14 +163,4 @@ signing {
         System.getenv("SIGNING_PASSWORD") ?: ""
     )
     sign(publishing.publications["mavenJava"])
-}
-
-nexusPublishing {
-    packageGroup.set(baseGroup)
-    repositories {
-        sonatype {
-            username.set(System.getenv("OSSRH_USERNAME"))
-            password.set(System.getenv("OSSRH_PASSWORD"))
-        }
-    }
 }
