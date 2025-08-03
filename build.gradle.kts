@@ -141,7 +141,7 @@ publishing {
             from(components["java"])
             pom {
                 name.set("NotificationsAPI")
-                description.set("Notifications API")
+                description.set("A Minecraft modding API for rendering in-game notifications with auto-sizing, text wrapping, and NanoVG.")
                 url.set("https://github.com/Arctyll/NotificationsAPI")
                 inceptionYear.set("2025")
                 licenses {
