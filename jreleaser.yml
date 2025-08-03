@@ -30,7 +30,7 @@ release:
 
 deploy:
   maven:
-    central:
+    mavenCentral:
       active: ALWAYS
       username: '${env.OSSRH_USERNAME}'
       password: '${env.OSSRH_PASSWORD}'
