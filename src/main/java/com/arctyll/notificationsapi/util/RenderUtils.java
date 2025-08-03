@@ -84,7 +84,7 @@ public class RenderUtils {
 	}
 
     public static void loadDefaultFont(ByteBuffer fontBuffer) {
-		int font = nvgCreateFontMem(vg, "default", fontBuffer, false);
+		int font = nvgCreateFontMem(vg, "default", fontBuffer, 0);
 		if (font == -1) {
 			throw new RuntimeException("Failed to load default font.");
 		}
