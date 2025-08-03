@@ -4,48 +4,29 @@ on:
   workflow_dispatch:
 
 jobs:
-  publish:
+  build-and-publish:
     runs-on: ubuntu-latest
+
+    env:
+      OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+      OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+      SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+      SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
-      - name: Set up JDK
+      - name: Set up JDK 8
         uses: actions/setup-java@v3
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          distribution: temurin
+          java-version: 17
+          server-id: ossrh
+          settings-path: ${{ github.workspace }}
 
-      - name: Set up Gradle
-        uses: gradle/gradle-build-action@v2
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
 
-      - name: Import GPG key securely
-        run: |
-          mkdir -p $HOME/.gnupg
-          chmod 700 $HOME/.gnupg
-
-          echo "${SIGNING_KEY}" | gpg --batch --yes --import
-
-          gpg --batch --yes --armor --pinentry-mode loopback \
-              --passphrase "${SIGNING_PASSWORD}" \
-              --export-secret-keys "${SIGNING_KEY_ID}" > secring.gpg
-        env:
-          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
-          SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
-          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
-
-      - name: Publish to Maven Central
-        run: |
-          ./gradlew publish \
-            -Psigning.keyId=${SIGNING_KEY_ID} \
-            -Psigning.password=${SIGNING_PASSWORD} \
-            -Psigning.secretKeyRingFile=secring.gpg \
-            -PossrhUsername=${OSSRH_USERNAME} \
-            -PossrhPassword=${OSSRH_PASSWORD} \
-            --no-daemon
-        env:
-          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-          OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
-          SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
-          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
+      - name: Build and publish
+        run: ./gradlew clean build publish --stacktrace
