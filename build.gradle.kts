@@ -16,9 +16,6 @@ val version: String by project
 val modid: String by project
 val transformerFile = file("src/main/resources/accesstransformer.cfg")
 
-group = baseGroup
-version = version
-
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(8))
 }
