@@ -1,9 +1,5 @@
 import org.apache.commons.lang3.SystemUtils
-import org.gradle.api.tasks.compile.JavaCompile
-import org.gradle.jvm.toolchain.JavaLanguageVersion
-import net.fabricmc.loom.task.RemapJarTask
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-import org.gradle.api.publish.maven.MavenPublication
+import org.jreleaser.model.Active
 
 plugins {
     idea
@@ -41,13 +37,13 @@ loom {
                 vmArgs.remove("-XstartOnFirstThread")
             }
         }
-        runConfigs.remove("server")
+        remove(getByName("server"))
     }
     forge {
         pack200Provider.set(dev.architectury.pack200.java.Pack200Adapter())
         if (transformerFile.exists()) {
             println("Installing access transformer")
-            accessTransformer = transformerFile
+            accessTransformer(transformerFile)
         }
     }
 }
@@ -167,15 +163,15 @@ publishing {
 
 jreleaser {
     signing {
-        active.set("ALWAYS")
+        active.set(Active.ALWAYS)
         armored.set(true)
     }
     deploy {
         maven {
             mavenCentral {
-                active.set("ALWAYS")
-                url.set("https://central.sonatype.com/api/v1/publisher")
-                stagingRepository.set("build/staging-deploy")
+                active.set(Active.ALWAYS)
+                targetUrl.set("https://central.sonatype.com/api/v1/publisher")
+                stagingRepository.set(layout.buildDirectory.dir("staging-deploy").get().asFile)
             }
         }
     }
