@@ -1,4 +1,7 @@
+import gg.essential.loom.task.RemapJarTask
 import org.apache.commons.lang3.SystemUtils
+import org.gradle.api.tasks.bundling.Jar
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.jreleaser.model.Active
 
 plugins {
@@ -17,6 +20,8 @@ val version: String by project
 val modid: String by project
 val transformerFile = file("src/main/resources/accesstransformer.cfg")
 val lwjglVersion = "3.3.1"
+
+group = baseGroup
 
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(8))
@@ -43,7 +48,7 @@ loom {
         pack200Provider.set(dev.architectury.pack200.java.Pack200Adapter())
         if (transformerFile.exists()) {
             println("Installing access transformer")
-            accessTransformer(transformerFile)
+            accessTransformer.set(transformerFile)
         }
     }
 }
@@ -89,19 +94,21 @@ tasks.withType<Jar>().configureEach {
 }
 
 tasks.processResources {
-    inputs.properties(mapOf(
-        "version" to project.version,
-        "mcversion" to mcVersion,
-        "modid" to modid,
-        "basePackage" to baseGroup
-    ))
+    inputs.properties(
+        mapOf(
+            "version" to project.version,
+            "mcversion" to mcVersion,
+            "modid" to modid,
+            "basePackage" to baseGroup
+        )
+    )
     filesMatching("mcmod.info") {
         expand(inputs.properties)
     }
     rename("accesstransformer.cfg", "META-INF/${modid}_at.cfg")
 }
 
-val remapJar by tasks.named<RemapJarTask>("remapJar") {
+val remapJar = tasks.register<RemapJarTask>("remapJar") {
     archiveClassifier.set("")
     from(tasks.named<ShadowJar>("shadowJar"))
     input.set(tasks.named<ShadowJar>("shadowJar").flatMap { it.archiveFile })
@@ -142,8 +149,8 @@ publishing {
                 }
                 developers {
                     developer {
-                        id.set("aalmiray")
-                        name.set("Andres Almiray")
+                        id.set("arctyll")
+                        name.set("Arctyll")
                     }
                 }
                 scm {
