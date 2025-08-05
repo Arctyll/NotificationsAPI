@@ -48,7 +48,7 @@ loom {
         pack200Provider.set(dev.architectury.pack200.java.Pack200Adapter())
         if (transformerFile.exists()) {
             println("Installing access transformer")
-            accessTransformer.set(transformerFile)
+            accessTransformer(transformerFile)
         }
     }
 }
@@ -69,6 +69,9 @@ dependencies {
     "mappings"("de.oceanlabs.mcp:mcp_stable:22-1.8.9")
     "forge"("net.minecraftforge:forge:1.8.9-11.15.1.2318-1.8.9")
 
+    shadowImpl("org.reflections:reflections:0.10.2")
+    runtimeOnly("me.djtheredstoner:DevAuth-forge-legacy:1.2.1")
+
     shadowImpl("org.lwjgl:lwjgl:$lwjglVersion")
     shadowImpl("org.lwjgl:lwjgl-opengl:$lwjglVersion")
     shadowImpl("org.lwjgl:lwjgl-nanovg:$lwjglVersion")
@@ -88,9 +91,12 @@ tasks.withType<Jar>().configureEach {
     archiveBaseName.set(modid)
     manifest.attributes(
         "FMLCorePluginContainsFMLMod" to "true",
-        "ForceLoadAsMod" to "true",
-        "FMLAT" to if (transformerFile.exists()) "${modid}_at.cfg" else ""
-    )
+        "ForceLoadAsMod" to "true"
+    ).apply {
+        if (transformerFile.exists()) {
+            this["FMLAT"] = "${modid}_at.cfg"
+        }
+    }
 }
 
 tasks.processResources {
@@ -133,13 +139,13 @@ publishing {
     publications {
         create<MavenPublication>("maven") {
             groupId = baseGroup
-            artifactId = "notificationsapi"
+            artifactId = modid
             version = project.version.toString()
             from(components["java"])
             pom {
                 name.set("NotificationsAPI")
-                description.set("Notifications API")
-                url.set("https://github.com/Arctyll/NotificationsAPI")
+                description.set("A Minecraft Forge 1.8.9 mod.")
+                url.set("https://github.com/Arctyll/$modid")
                 inceptionYear.set("2025")
                 licenses {
                     license {
@@ -154,9 +160,9 @@ publishing {
                     }
                 }
                 scm {
-                    connection.set("scm:git:https://github.com/Arctyll/NotificationsAPI.git")
-                    developerConnection.set("scm:git:ssh://github.com/Arctyll/NotificationsAPI.git")
-                    url.set("https://github.com/Arctyll/NotificationsAPI")
+                    connection.set("scm:git:https://github.com/Arctyll/$modid.git")
+                    developerConnection.set("scm:git:ssh://github.com/Arctyll/$modid.git")
+                    url.set("https://github.com/Arctyll/$modid")
                 }
             }
         }
