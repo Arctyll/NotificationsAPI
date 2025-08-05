@@ -1,7 +1,4 @@
-import gg.essential.loom.task.RemapJarTask
 import org.apache.commons.lang3.SystemUtils
-import org.gradle.api.tasks.bundling.Jar
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.jreleaser.model.Active
 
 plugins {
@@ -83,57 +80,58 @@ dependencies {
     }
 }
 
-tasks.withType<JavaCompile>().configureEach {
+tasks.withType(JavaCompile::class) {
     options.encoding = "UTF-8"
 }
 
-tasks.withType<Jar>().configureEach {
+tasks.withType(org.gradle.jvm.tasks.Jar::class) {
     archiveBaseName.set(modid)
-    manifest.attributes(
-        "FMLCorePluginContainsFMLMod" to "true",
-        "ForceLoadAsMod" to "true"
-    ).apply {
-        if (transformerFile.exists()) {
+    manifest.attributes.run {
+        this["FMLCorePluginContainsFMLMod"] = "true"
+        this["ForceLoadAsMod"] = "true"
+        this["TweakClass"] = "net.minecraftforge.fml.common.launcher.FMLTweaker"
+        if (transformerFile.exists())
             this["FMLAT"] = "${modid}_at.cfg"
-        }
     }
 }
 
 tasks.processResources {
-    inputs.properties(
-        mapOf(
-            "version" to project.version,
-            "mcversion" to mcVersion,
-            "modid" to modid,
-            "basePackage" to baseGroup
-        )
-    )
+    inputs.property("version", project.version)
+    inputs.property("mcversion", mcVersion)
+    inputs.property("modid", modid)
+    inputs.property("basePackage", baseGroup)
+
     filesMatching("mcmod.info") {
         expand(inputs.properties)
     }
+
     rename("accesstransformer.cfg", "META-INF/${modid}_at.cfg")
 }
 
-val remapJar = tasks.register<RemapJarTask>("remapJar") {
+val remapJar by tasks.named<net.fabricmc.loom.task.RemapJarTask>("remapJar") {
     archiveClassifier.set("")
-    from(tasks.named<ShadowJar>("shadowJar"))
-    input.set(tasks.named<ShadowJar>("shadowJar").flatMap { it.archiveFile })
+    from(tasks.shadowJar)
+    input.set(tasks.shadowJar.get().archiveFile)
 }
 
-tasks.named<Jar>("jar") {
+tasks.jar {
     archiveClassifier.set("without-deps")
     destinationDirectory.set(layout.buildDirectory.dir("intermediates"))
 }
 
-tasks.named<ShadowJar>("shadowJar") {
-    archiveClassifier.set("non-obfuscated-with-deps")
+tasks.shadowJar {
     destinationDirectory.set(layout.buildDirectory.dir("intermediates"))
+    archiveClassifier.set("non-obfuscated-with-deps")
     configurations = listOf(shadowImpl)
+
+    doLast {
+        configurations.forEach {
+            println("Shaded dependencies: ${it.files}")
+        }
+    }
 }
 
-tasks.assemble {
-    dependsOn(remapJar)
-}
+tasks.assemble.get().dependsOn(tasks.remapJar)
 
 publishing {
     publications {
