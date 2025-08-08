@@ -1,5 +1,4 @@
 import org.apache.commons.lang3.SystemUtils
-import org.jreleaser.model.Active
 
 plugins {
     idea
@@ -132,58 +131,3 @@ tasks.shadowJar {
 }
 
 tasks.assemble.get().dependsOn(tasks.remapJar)
-
-publishing {
-    publications {
-        create<MavenPublication>("maven") {
-            groupId = baseGroup
-            artifactId = modid
-            version = project.version.toString()
-            from(components["java"])
-            pom {
-                name.set("NotificationsAPI")
-                description.set("A Minecraft Forge 1.8.9 mod.")
-                url.set("https://github.com/Arctyll/$modid")
-                inceptionYear.set("2025")
-                licenses {
-                    license {
-                        name.set("MIT")
-                        url.set("https://opensource.org/license/mit")
-                    }
-                }
-                developers {
-                    developer {
-                        id.set("arctyll")
-                        name.set("Arctyll")
-                    }
-                }
-                scm {
-                    connection.set("scm:git:https://github.com/Arctyll/$modid.git")
-                    developerConnection.set("scm:git:ssh://github.com/Arctyll/$modid.git")
-                    url.set("https://github.com/Arctyll/$modid")
-                }
-            }
-        }
-    }
-    repositories {
-        maven {
-            url = uri(layout.buildDirectory.dir("staging-deploy"))
-        }
-    }
-}
-
-jreleaser {
-    signing {
-        active.set(Active.ALWAYS)
-        armored.set(true)
-    }
-    deploy {
-        maven {
-            mavenCentral {
-                active.set(Active.ALWAYS)
-                targetUrl.set("https://central.sonatype.com/api/v1/publisher")
-                stagingRepository.set(layout.buildDirectory.dir("staging-deploy").get().asFile)
-            }
-        }
-    }
-}

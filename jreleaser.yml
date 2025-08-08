@@ -5,9 +5,11 @@ project:
   authors:
     - Arctyll
   license: MIT
+  inceptionYear: 2025
   links:
     homepage: https://github.com/Arctyll/NotificationsAPI
     vcsBrowser: https://github.com/Arctyll/NotificationsAPI
+    repository: https://github.com/Arctyll/NotificationsAPI.git
 
 signing:
   active: ALWAYS
@@ -17,13 +19,25 @@ deploy:
   maven:
     mavenCentral:
       active: ALWAYS
-      url: https://central.sonatype.com/api/v1/publisher
-      stagingRepository: target/staging-deploy
-    nexus2:
-      active: SNAPSHOT
-      snapshotUrl: https://central.sonatype.com/repository/maven-snapshots/
-      applyMavenCentralRules: true
-      snapshotSupported: true
-      closeRepository: true
-      releaseRepository: true
-      stagingRepository: target/staging-deploy
+
+assemble:
+  maven:
+    active: ALWAYS
+    formats: [jar]
+    artifacts:
+      - path: build/libs/*.jar
+    pom:
+      name: NotificationsAPI
+      description: A Minecraft modding API for rendering in-game notifications with auto-sizing, text wrapping, and NanoVG.
+      url: https://github.com/Arctyll/NotificationsAPI
+      inceptionYear: 2025
+      licenses:
+        - name: MIT
+          url: https://opensource.org/license/mit
+      developers:
+        - id: arctyll
+          name: Arctyll
+      scm:
+        connection: scm:git:https://github.com/Arctyll/NotificationsAPI.git
+        developerConnection: scm:git:ssh://github.com/Arctyll/NotificationsAPI.git
+        url: https://github.com/Arctyll/NotificationsAPI

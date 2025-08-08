@@ -43,4 +43,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: mod-jar
-          path: build/libs/*-all.jar
+          path: build/libs/*.jar
