@@ -25,6 +25,9 @@ java {
     withSourcesJar()
 }
 
+val shadowImpl by configurations.creating
+configurations.implementation.get().extendsFrom(shadowImpl)
+
 loom {
     log4jConfigs.from(file("log4j2.xml"))
     launchConfigs {
@@ -56,17 +59,14 @@ repositories {
     maven("https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1")
 }
 
-val shadowImpl by configurations.creating {
-    extendsFrom(configurations.implementation.get())
-}
-
 dependencies {
     "minecraft"("com.mojang:minecraft:1.8.9")
     "mappings"("de.oceanlabs.mcp:mcp_stable:22-1.8.9")
     "forge"("net.minecraftforge:forge:1.8.9-11.15.1.2318-1.8.9")
 
-    shadowImpl("org.reflections:reflections:0.10.2")
     runtimeOnly("me.djtheredstoner:DevAuth-forge-legacy:1.2.1")
+    
+    shadowImpl("org.reflections:reflections:0.10.2")
 
     shadowImpl("org.lwjgl:lwjgl:$lwjglVersion")
     shadowImpl("org.lwjgl:lwjgl-opengl:$lwjglVersion")
