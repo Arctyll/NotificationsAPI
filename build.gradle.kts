@@ -28,7 +28,7 @@ java {
 loom {
     log4jConfigs.from(file("log4j2.xml"))
     launchConfigs {
-        create("client") {
+        named("client") {
             arg("--tweakClass", "net.minecraftforge.fml.common.launcher.FMLTweaker")
         }
     }
