@@ -7,7 +7,6 @@ plugins {
     id("dev.architectury.architectury-pack200") version "0.1.3"
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("maven-publish")
-    id("org.jreleaser") version "1.9.0"
 }
 
 val baseGroup: String by project

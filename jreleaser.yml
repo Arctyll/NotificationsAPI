@@ -9,7 +9,6 @@ project:
   links:
     homepage: https://github.com/Arctyll/NotificationsAPI
     vcsBrowser: https://github.com/Arctyll/NotificationsAPI
-    repository: https://github.com/Arctyll/NotificationsAPI.git
 
 signing:
   active: ALWAYS
