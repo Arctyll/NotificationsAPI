@@ -11,17 +11,19 @@ project:
     vcsBrowser: https://github.com/Arctyll/NotificationsAPI
 
 signing:
-  active: ALWAYS
+  active: true
   armored: true
 
 deploy:
   maven:
     mavenCentral:
-      active: ALWAYS
+      active: true
+      url: https://central.sonatype.com/api/v1/publisher
+      applyMavenCentralRules: true
 
 assemble:
   maven:
-    active: ALWAYS
+    active: true
     formats: [jar]
     artifacts:
       - path: build/libs/*.jar
