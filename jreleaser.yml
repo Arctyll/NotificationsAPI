@@ -1,6 +1,6 @@
 project:
   name: notificationsapi
-  version: '{{projectVersion}}'
+  version: 1.0.0
   description: A Minecraft modding API for rendering in-game notifications with auto-sizing, text wrapping, and NanoVG.
   authors:
     - Arctyll
@@ -11,19 +11,19 @@ project:
     vcsBrowser: https://github.com/Arctyll/NotificationsAPI
 
 signing:
-  active: true
+  active: ALWAYS
   armored: true
 
 deploy:
   maven:
     mavenCentral:
-      active: true
+      active: ALWAYS
       url: https://central.sonatype.com/api/v1/publisher
       applyMavenCentralRules: true
 
 assemble:
   maven:
-    active: true
+    active: ALWAYS
     formats: [jar]
     artifacts:
       - path: build/libs/*.jar
