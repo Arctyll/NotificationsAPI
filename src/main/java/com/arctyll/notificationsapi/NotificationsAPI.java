@@ -13,7 +13,7 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 
-@Mod(modid = "notificationsapi", name = "NotificationsAPI", version = "1.0", acceptedMinecraftVersions = "[1.8.9]")
+@Mod(modid = "notificationsapi", name = "NotificationsAPI", version = "0.1-alpha", acceptedMinecraftVersions = "[1.8.9]")
 public class NotificationsAPI {
 
     @Mod.EventHandler
