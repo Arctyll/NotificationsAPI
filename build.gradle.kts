@@ -112,10 +112,6 @@ val remapJar by tasks.named<net.fabricmc.loom.task.RemapJarTask>("remapJar") {
     input.set(tasks.shadowJar.get().archiveFile)
 }
 
-tasks.named("generateMetadataFileForMavenPublication") {
-    dependsOn(tasks.named("plainJavadocJar"))
-}
-
 tasks.jar {
     archiveClassifier.set("without-deps")
     destinationDirectory.set(layout.buildDirectory.dir("intermediates"))
@@ -136,34 +132,40 @@ tasks.shadowJar {
 tasks.assemble.get().dependsOn(tasks.remapJar)
 
 mavenPublishing {
-  publishToMavenCentral(automaticRelease = true)
-  signAllPublications()
-  
-  coordinates("com.arctyll.notificationsapi", "notificationsapi", "0.1-alpha")
+    publishToMavenCentral(automaticRelease = true)
+    signAllPublications()
 
-  pom {
-    name.set("NotificationsAPI")
-    description.set("An API to send notifications.")
-    inceptionYear.set("2025")
-    url.set("https://github.com/Arctyll/NotificationsAPI")
-    licenses {
-      license {
-        name.set("The MIT License")
-        url.set("https://opensource.org/licenses/MIT")
-        distribution.set("https://opensource.org/licenses/MIT")
-      }
+    coordinates("com.arctyll.notificationsapi", "notificationsapi", "0.1-alpha")
+
+    pom {
+        name.set("NotificationsAPI")
+        description.set("An API to send notifications.")
+        inceptionYear.set("2025")
+        url.set("https://github.com/Arctyll/NotificationsAPI")
+        licenses {
+            license {
+                name.set("The MIT License")
+                url.set("https://opensource.org/licenses/MIT")
+                distribution.set("https://opensource.org/licenses/MIT")
+            }
+        }
+        developers {
+            developer {
+                id.set("classycoder")
+                name.set("ClassyCoder")
+                url.set("https://github.com/ClassyCoder1")
+            }
+        }
+        scm {
+            url.set("https://github.com/Arctyll/NotificationsAPI")
+            connection.set("scm:git:git://github.com/Arctyll/NotificationsAPI.git")
+            developerConnection.set("scm:git:ssh://git@github.com/Arctyll/NotificationsAPI.git")
+        }
     }
-    developers {
-      developer {
-        id.set("classycoder")
-        name.set("ClassyCoder")
-        url.set("https://github.com/ClassyCoder1")
-      }
-    }
-    scm {
-      url.set("https://github.com/Arctyll/NotificationsAPI")
-      connection.set("scm:git:git://github.com/Arctyll/NotificationsAPI.git")
-      developerConnection.set("scm:git:ssh://git@github.com/Arctyll/NotificationsAPI.git")
-    }
-  }
 }
+
+tasks.matching { it.name.startsWith("generateMetadataFileFor") && it.name.endsWith("Publication") }
+    .configureEach {
+        dependsOn(tasks.named("plainJavadocJar"))
+        dependsOn(tasks.named("sourcesJar"))
+    }
