@@ -112,6 +112,10 @@ val remapJar by tasks.named<net.fabricmc.loom.task.RemapJarTask>("remapJar") {
     input.set(tasks.shadowJar.get().archiveFile)
 }
 
+tasks.named("generateMetadataFileForMavenPublication") {
+    dependsOn(tasks.named("plainJavadocJar"))
+}
+
 tasks.jar {
     archiveClassifier.set("without-deps")
     destinationDirectory.set(layout.buildDirectory.dir("intermediates"))
