@@ -1,5 +1,4 @@
 import org.apache.commons.lang3.SystemUtils
-import com.vanniktech.maven.publish.SonatypeHost
 
 plugins {
     idea
