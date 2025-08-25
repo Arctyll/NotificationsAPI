@@ -164,8 +164,7 @@ mavenPublishing {
     }
 }
 
-tasks.matching { it.name.startsWith("generateMetadataFileFor") && it.name.endsWith("Publication") }
-    .configureEach {
-        dependsOn(tasks.named("plainJavadocJar"))
-        dependsOn(tasks.named("sourcesJar"))
-    }
+tasks.named("generateMetadataFileForMavenPublication") {
+    dependsOn(tasks.named("plainJavadocJar"))
+    dependsOn(tasks.named("sourcesJar"))
+}
