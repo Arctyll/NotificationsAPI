@@ -18,17 +18,19 @@ public class NotificationManager {
     }
 
     public static void render() {
-		ScaledResolution res = new ScaledResolution(Minecraft.getMinecraft());
-		int scaledWidth = res.getScaledWidth();
-		int scaledHeight = res.getScaledHeight();
-		
+        ScaledResolution res = new ScaledResolution(Minecraft.getMinecraft());
+        int scaledWidth = res.getScaledWidth();
+        int scaledHeight = res.getScaledHeight();
+
         RenderUtils.beginFrame(scaledWidth, scaledHeight);
 
         int spacing = 8;
-        int padding = 10;
-        int cornerRadius = 8;
-        int fontSizeTitle = 18;
-        int fontSizeMessage = 14;
+        int padding = 20;
+        int cornerRadius = 10;
+        int fontSizeTitle = 22;
+        int fontSizeMessage = 16;
+        int iconSize = 40;
+        int iconGap = 12;
 
         for (Position position : Position.values()) {
             List<Notification> list = getNotificationsAt(position);
@@ -43,11 +45,19 @@ public class NotificationManager {
                 float alpha = TimeUtils.getAlpha(n.getStartTime(), n.getDuration(), 200);
                 float ease = TimeUtils.easeInOut(progress);
 
+                boolean hasIcon = n.getIcon() != null;
                 float maxWidth = Math.max(n.getMaxWidth(), 150);
 
-                float[] messageBounds = RenderUtils.measureWrappedText(n.getMessage(), maxWidth - 2 * padding, fontSizeMessage);
+                float textAreaWidth = maxWidth - 2 * padding;
+                if (hasIcon) {
+                    textAreaWidth -= (iconSize + iconGap);
+                }
+
+                float[] messageBounds = RenderUtils.measureWrappedText(n.getMessage(), textAreaWidth, fontSizeMessage);
                 float messageHeight = messageBounds[3] - messageBounds[1];
-                float height = padding * 2 + fontSizeTitle + 4 + messageHeight;
+
+                float headerHeight = hasIcon ? Math.max(iconSize, fontSizeTitle) : fontSizeTitle;
+                float height = padding * 2 + headerHeight + 10 + messageHeight; // 10px gap between title and message
 
                 float slideOffset = 20 * (1 - ease);
                 float offsetX, offsetY;
@@ -55,20 +65,20 @@ public class NotificationManager {
                 switch (n.getPosition() != null ? n.getPosition() : Position.TOP_RIGHT) {
                     case TOP_LEFT:
                         offsetX = 10 + slideOffset;
-                        offsetY = 10 + getOffsetY(i, list, spacing, padding, fontSizeTitle, fontSizeMessage, maxWidth);
+                        offsetY = 10 + getOffsetY(i, list, spacing, padding, fontSizeTitle, fontSizeMessage, maxWidth, iconSize, iconGap);
                         break;
                     case TOP_RIGHT:
                         offsetX = scaledWidth - maxWidth - 10 - slideOffset;
-                        offsetY = 10 + getOffsetY(i, list, spacing, padding, fontSizeTitle, fontSizeMessage, maxWidth);
+                        offsetY = 10 + getOffsetY(i, list, spacing, padding, fontSizeTitle, fontSizeMessage, maxWidth, iconSize, iconGap);
                         break;
                     case BOTTOM_LEFT:
                         offsetX = 10 + slideOffset;
-                        offsetY = scaledHeight - getBottomOffsetY(i, list, spacing, padding, fontSizeTitle, fontSizeMessage, maxWidth);
+                        offsetY = scaledHeight - getBottomOffsetY(i, list, spacing, padding, fontSizeTitle, fontSizeMessage, maxWidth, iconSize, iconGap);
                         break;
                     case BOTTOM_RIGHT:
                     default:
                         offsetX = scaledWidth - maxWidth - 10 - slideOffset;
-                        offsetY = scaledHeight - getBottomOffsetY(i, list, spacing, padding, fontSizeTitle, fontSizeMessage, maxWidth);
+                        offsetY = scaledHeight - getBottomOffsetY(i, list, spacing, padding, fontSizeTitle, fontSizeMessage, maxWidth, iconSize, iconGap);
                         break;
                 }
 
@@ -77,8 +87,26 @@ public class NotificationManager {
                 int mc = applyAlpha(n.getMessageColor(), alpha);
 
                 RenderUtils.drawRoundedRect(offsetX, offsetY, maxWidth, height, cornerRadius, bg);
-                RenderUtils.drawText(offsetX + padding, offsetY + padding, n.getTitle(), fontSizeTitle, tc);
-                RenderUtils.drawWrappedText(offsetX + padding, offsetY + padding + fontSizeTitle + 4, n.getMessage(), maxWidth - 2 * padding, fontSizeMessage, mc);
+
+                float contentX = offsetX + padding;
+                float contentY = offsetY + padding;
+
+                if (hasIcon) {
+                    int iconColor = applyAlpha(0xFFCCCCCC, alpha); // Light gray icon color to match HTML
+                    RenderUtils.drawIcon(n.getIcon(), contentX, contentY, iconSize, iconColor);
+
+                    float titleX = contentX + iconSize + iconGap;
+                    float titleY = contentY + (iconSize - fontSizeTitle) / 2f; // Center title vertically with icon
+                    RenderUtils.drawText(titleX, titleY, n.getTitle(), fontSizeTitle, tc);
+
+                    float messageY = contentY + headerHeight + 10; // 10px gap
+                    RenderUtils.drawWrappedText(contentX, messageY, n.getMessage(), textAreaWidth, fontSizeMessage, mc);
+                } else {
+                    RenderUtils.drawText(contentX, contentY, n.getTitle(), fontSizeTitle, tc);
+
+                    float messageY = contentY + fontSizeTitle + 10; // 10px gap
+                    RenderUtils.drawWrappedText(contentX, messageY, n.getMessage(), textAreaWidth, fontSizeMessage, mc);
+                }
             }
         }
 
@@ -86,31 +114,59 @@ public class NotificationManager {
         removeExpired();
     }
 
-    private static float getOffsetY(int index, List<Notification> list, int spacing, int padding, int fontSizeTitle, int fontSizeMessage, float maxWidth) {
+    private static float getOffsetY(int index, List<Notification> list, int spacing, int padding, int fontSizeTitle, int fontSizeMessage, float maxWidth, int iconSize, int iconGap) {
         float y = 0;
         for (int i = 0; i < index; i++) {
             Notification n = list.get(i);
-            float[] bounds = RenderUtils.measureWrappedText(n.getMessage(), maxWidth - 2 * padding, fontSizeMessage);
+            boolean hasIcon = n.getIcon() != null;
+
+            float textAreaWidth = maxWidth - 2 * padding;
+            if (hasIcon) {
+                textAreaWidth -= (iconSize + iconGap);
+            }
+
+            float[] bounds = RenderUtils.measureWrappedText(n.getMessage(), textAreaWidth, fontSizeMessage);
             float messageHeight = bounds[3] - bounds[1];
-            float height = padding * 2 + fontSizeTitle + 4 + messageHeight;
+
+            float headerHeight = hasIcon ? Math.max(iconSize, fontSizeTitle) : fontSizeTitle;
+            float height = padding * 2 + headerHeight + 10 + messageHeight;
             y += height + spacing;
         }
         return y;
     }
 
-    private static float getBottomOffsetY(int index, List<Notification> list, int spacing, int padding, int fontSizeTitle, int fontSizeMessage, float maxWidth) {
+    private static float getBottomOffsetY(int index, List<Notification> list, int spacing, int padding, int fontSizeTitle, int fontSizeMessage, float maxWidth, int iconSize, int iconGap) {
         float y = 0;
         for (int i = list.size() - 1; i > index; i--) {
             Notification n = list.get(i);
-            float[] bounds = RenderUtils.measureWrappedText(n.getMessage(), maxWidth - 2 * padding, fontSizeMessage);
+            boolean hasIcon = n.getIcon() != null;
+
+            float textAreaWidth = maxWidth - 2 * padding;
+            if (hasIcon) {
+                textAreaWidth -= (iconSize + iconGap);
+            }
+
+            float[] bounds = RenderUtils.measureWrappedText(n.getMessage(), textAreaWidth, fontSizeMessage);
             float messageHeight = bounds[3] - bounds[1];
-            float height = padding * 2 + fontSizeTitle + 4 + messageHeight;
+
+            float headerHeight = hasIcon ? Math.max(iconSize, fontSizeTitle) : fontSizeTitle;
+            float height = padding * 2 + headerHeight + 10 + messageHeight;
             y += height + spacing;
         }
+
         Notification n = list.get(index);
-        float[] bounds = RenderUtils.measureWrappedText(n.getMessage(), maxWidth - 2 * padding, fontSizeMessage);
+        boolean hasIcon = n.getIcon() != null;
+
+        float textAreaWidth = maxWidth - 2 * padding;
+        if (hasIcon) {
+            textAreaWidth -= (iconSize + iconGap);
+        }
+
+        float[] bounds = RenderUtils.measureWrappedText(n.getMessage(), textAreaWidth, fontSizeMessage);
         float messageHeight = bounds[3] - bounds[1];
-        float height = padding * 2 + fontSizeTitle + 4 + messageHeight;
+
+        float headerHeight = hasIcon ? Math.max(iconSize, fontSizeTitle) : fontSizeTitle;
+        float height = padding * 2 + headerHeight + 10 + messageHeight;
         return y + height;
     }
 

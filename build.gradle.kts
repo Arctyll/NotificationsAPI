@@ -6,7 +6,6 @@ plugins {
     id("gg.essential.loom") version "0.10.0.+"
     id("dev.architectury.architectury-pack200") version "0.1.3"
     id("com.github.johnrengelman.shadow") version "8.1.1"
-    id("com.vanniktech.maven.publish") version "0.34.0"
 }
 
 val baseGroup: String by project
@@ -130,43 +129,3 @@ tasks.shadowJar {
 }
 
 tasks.assemble.get().dependsOn(tasks.remapJar)
-
-mavenPublishing {
-    publishToMavenCentral(automaticRelease = true)
-    signAllPublications()
-
-    coordinates("com.arctyll.notificationsapi", "notificationsapi", "0.1-alpha")
-
-    pom {
-        name.set("NotificationsAPI")
-        description.set("An API to send notifications.")
-        inceptionYear.set("2025")
-        url.set("https://github.com/Arctyll/NotificationsAPI")
-        licenses {
-            license {
-                name.set("The MIT License")
-                url.set("https://opensource.org/licenses/MIT")
-                distribution.set("https://opensource.org/licenses/MIT")
-            }
-        }
-        developers {
-            developer {
-                id.set("classycoder")
-                name.set("ClassyCoder")
-                url.set("https://github.com/ClassyCoder1")
-            }
-        }
-        scm {
-            url.set("https://github.com/Arctyll/NotificationsAPI")
-            connection.set("scm:git:git://github.com/Arctyll/NotificationsAPI.git")
-            developerConnection.set("scm:git:ssh://git@github.com/Arctyll/NotificationsAPI.git")
-        }
-    }
-}
-
-afterEvaluate {
-    tasks.matching { it.name.contains("generateMetadataFileFor") && it.name.contains("Publication") }.configureEach {
-        dependsOn("plainJavadocJar")
-        dependsOn("sourcesJar")
-    }
-}

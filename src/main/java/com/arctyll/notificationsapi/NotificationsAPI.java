@@ -1,12 +1,15 @@
 package com.arctyll.notificationsapi;
 
 import com.arctyll.notificationsapi.util.RenderUtils;
+import com.arctyll.notificationsapi.test.command.TestCommand;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.client.ClientCommandHandler;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,7 +28,8 @@ public class NotificationsAPI {
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
         MinecraftForge.EVENT_BUS.register(this);
-    }
+		ClientCommandHandler.instance.registerCommand(new TestCommand());
+	}
 
     private void loadFontFromAssets(String path) {
         try {
@@ -47,24 +51,44 @@ public class NotificationsAPI {
             NotificationManager.render();
         }
     }
-	
+
     public static void send(String title, String message) {
-        send(title, message, 250, 4000, Position.TOP_RIGHT, 0xCC222222, 0xFFFFFFFF, 0xFFDDDDDD);
+        send(title, message, 250, 4000, Position.TOP_RIGHT, 0xCC222222, 0xFFFFFFFF, 0xFFDDDDDD, null);
+    }
+
+    public static void send(String title, String message, ResourceLocation icon) {
+        send(title, message, 250, 4000, Position.TOP_RIGHT, 0xCC222222, 0xFFFFFFFF, 0xFFDDDDDD, icon);
     }
 
     public static void send(String title, String message, int maxWidth) {
-        send(title, message, maxWidth, 4000, Position.TOP_RIGHT, 0xCC222222, 0xFFFFFFFF, 0xFFDDDDDD);
+        send(title, message, maxWidth, 4000, Position.TOP_RIGHT, 0xCC222222, 0xFFFFFFFF, 0xFFDDDDDD, null);
+    }
+
+    public static void send(String title, String message, int maxWidth, ResourceLocation icon) {
+        send(title, message, maxWidth, 4000, Position.TOP_RIGHT, 0xCC222222, 0xFFFFFFFF, 0xFFDDDDDD, icon);
     }
 
     public static void send(String title, String message, int maxWidth, long duration) {
-        send(title, message, maxWidth, duration, Position.TOP_RIGHT, 0xCC222222, 0xFFFFFFFF, 0xFFDDDDDD);
+        send(title, message, maxWidth, duration, Position.TOP_RIGHT, 0xCC222222, 0xFFFFFFFF, 0xFFDDDDDD, null);
+    }
+
+    public static void send(String title, String message, int maxWidth, long duration, ResourceLocation icon) {
+        send(title, message, maxWidth, duration, Position.TOP_RIGHT, 0xCC222222, 0xFFFFFFFF, 0xFFDDDDDD, icon);
     }
 
     public static void send(String title, String message, int maxWidth, long duration, Position position) {
-        send(title, message, maxWidth, duration, position, 0xCC222222, 0xFFFFFFFF, 0xFFDDDDDD);
+        send(title, message, maxWidth, duration, position, 0xCC222222, 0xFFFFFFFF, 0xFFDDDDDD, null);
+    }
+
+    public static void send(String title, String message, int maxWidth, long duration, Position position, ResourceLocation icon) {
+        send(title, message, maxWidth, duration, position, 0xCC222222, 0xFFFFFFFF, 0xFFDDDDDD, icon);
     }
 
     public static void send(String title, String message, int maxWidth, long duration, Position position, int bgColor, int titleColor, int msgColor) {
+        send(title, message, maxWidth, duration, position, bgColor, titleColor, msgColor, null);
+    }
+
+    public static void send(String title, String message, int maxWidth, long duration, Position position, int bgColor, int titleColor, int msgColor, ResourceLocation icon) {
         if (title == null || message == null || duration <= 0) return;
 
         Notification n = new Notification(
@@ -72,10 +96,11 @@ public class NotificationsAPI {
             message,
             Math.max(150, maxWidth),
             duration,
-            position != null ? position : Position.TOP_RIGHT,
+            position != null ? position : Position.BOTTOM_RIGHT,
             bgColor,
             titleColor,
-            msgColor
+            msgColor,
+            icon
         );
 
         NotificationManager.addNotification(n);
